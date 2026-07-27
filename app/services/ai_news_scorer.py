@@ -3351,14 +3351,26 @@ def _validate_score_against_content(score: float, content: str, ticker: str, ai_
         "belirsiz oldugu icin",
         "etkisi tahmin edilemez", "etkisi tahmin edilememekte",  # "etkisi tahmin edilemez"
     )
-    if score is not None and score != 5.0 and (
-        any(m in _su for m in _no_data_markers) or _NO_DATA_RE.search(_su)
-    ):
-        logger.info(
-            "AI News Scorer [VERI-YOK/AI-NOTR→NOTR] %s: %.1f -> 5.0 "
-            "(AI özeti içeriğe erişilemediğini/nötr/belirsiz olduğunu beyan ediyor — "
-            "skor özetle çelişemez, pozitif/negatif tweet atılmaz)", ticker, score,
-        )
+    # ★★★ KRİTİK (FRMPL 22181, 27.07.2026): `score != 5.0` koşulu KALDIRILDI.
+    # Kök sebep: AI zaten DOĞRU şekilde 5.0 Nötr vermişti; guard "zaten nötr,
+    # düzeltmeye gerek yok" deyip atladı ve akış aşağı devam etti — oradaki
+    # "yeni iş ilişkisi nötr olamaz → en az 6.0" floor'u nötrü POZİTİFE çıkardı
+    # ve "POZİTİF KAP BİLDİRİMİ" tweet'i atıldı (kullanıcı: "yine böyle tweet
+    # attı"). Artık veri-yok/belirsizlik beyanı varsa skor NE OLURSA OLSUN
+    # ANINDA 5.0 döner → aşağıdaki hiçbir pozitif floor bu haberi yükseltemez.
+    if any(m in _su for m in _no_data_markers) or _NO_DATA_RE.search(_su):
+        if score is None or score != 5.0:
+            logger.info(
+                "AI News Scorer [VERI-YOK/AI-NOTR→NOTR] %s: %s -> 5.0 "
+                "(AI özeti içeriğe erişilemediğini/nötr/belirsiz olduğunu beyan ediyor — "
+                "skor özetle çelişemez, pozitif/negatif tweet atılmaz)", ticker, score,
+            )
+        else:
+            logger.info(
+                "AI News Scorer [VERI-YOK/AI-NOTR→NOTR-KİLİT] %s: 5.0 KİLİTLENDİ "
+                "(veri yok beyanı — aşağıdaki pozitif floor'lar bu haberi yükseltemez)",
+                ticker,
+            )
         return 5.0
 
     # ─── ⚽ SPOR KULUBU TRANSFER HABERI → NOTR (MUTLAK ONCELIK) ──────
