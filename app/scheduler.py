@@ -4600,6 +4600,17 @@ async def _quarterly_bilanco_ai_cron():
     CronTrigger zaten ay/gun filtresi yapiyor (month='3,6,9,12', day='15-30').
     Bu wrapper sadece guvenli sleep ile run_overnight_bilanco_ai cagirir.
     """
+    # ★ 31.07.2026: Bilanço AI kapatıldı (kredi tüketimi + özellik kaldırıldı).
+    # Şalter ai_bilanco_analyzer.BILANCO_AI_ENABLED — kapalıyken 700+ şirketlik
+    # döngüyü hiç başlatma (boşuna DB/CPU harcamasın).
+    try:
+        from app.services.ai_bilanco_analyzer import BILANCO_AI_ENABLED as _BAI
+    except Exception:
+        _BAI = False
+    if not _BAI:
+        logger.info("[quarterly_bilanco_ai_cron] ATLANDI — BILANCO_AI_ENABLED=False (kredi korumasi)")
+        return
+
     logger.info("[quarterly_bilanco_ai_cron] tetiklendi — gece batch baslatiliyor")
     try:
         await run_overnight_bilanco_ai(sleep_sec=28, max_count=900)

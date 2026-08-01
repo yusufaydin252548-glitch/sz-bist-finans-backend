@@ -38,7 +38,10 @@ logger = logging.getLogger(__name__)
 #    (kap-fr_TechnicalBalance veya NonlifeTechnicalSectionBalance+LifeTechnicalSectionBalance).
 # 3) save_parsed_bilanco senaryo 1 (IsYatirim mevcut): yalniz NULL/0 alanlari enrich eder,
 #    mevcut dogru veriyi EZMEZ. Yani xlsx import veya IsYatirim verisi guvendedir.
-BILANCO_PIPELINE_ENABLED = True
+# ★ 31.07.2026: TEKRAR KAPATILDI (kullanıcı: "acil pasif, su gibi kredi yiyor").
+# Özellik uyumluluk kilidiyle uygulamadan kaldırıldı; yeni bilanço bildirimi
+# gelse bile işlenmez, AI analizi üretilmez, tweet atılmaz.
+BILANCO_PIPELINE_ENABLED = False
 
 # Yalnizca bu sektorlerden gelen bilancolar pipeline'a girer.
 # Insurance: technical_balance fix sonrasi guvenli oldu — kapsama dahil.

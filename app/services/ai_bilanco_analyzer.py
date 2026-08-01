@@ -13,6 +13,14 @@ from app.config import get_settings
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
+# ═══════════════════════════════════════════════════════════════════════
+# ★ BİLANÇO AI ANA ŞALTER (31.07.2026) — False iken HİÇBİR bilanço AI
+# çağrısı yapılmaz (gece toplu batch, KAP tetikli pipeline, admin endpoint,
+# queue worker — hepsi). Özellik uyumluluk kilidiyle uygulamadan kaldırıldı;
+# kredi tüketimini sıfırlamak için kapatıldı. Geri açmak: True + deploy.
+# ═══════════════════════════════════════════════════════════════════════
+BILANCO_AI_ENABLED = False
+
 _ABACUS_URL = "https://routellm.abacus.ai/v1/chat/completions"
 _ANTHROPIC_URL = "https://api.anthropic.com/v1/messages"
 _AI_MODEL = "claude-sonnet-4-6"
@@ -491,6 +499,18 @@ async def analyze_bilanco(ticker: str, financials: list[dict], ratios: dict | No
     Returns:
         dict — AI analiz sonucu (JSON) veya None
     """
+    # ★★★ HARD KILL (31.07.2026, kullanıcı isteği): Bilanço AI analizi TAMAMEN
+    # KAPALI. Sebep: özellik uyumluluk kilidiyle uygulamadan kaldırıldı (Borsa
+    # İstanbul ihtarı) ama gece toplu işi (run_overnight_bilanco_ai, 700+ şirket)
+    # + KAP tetikli pipeline AI kredisini boşuna tüketmeye devam ediyordu.
+    # Bu guard TÜM yolları keser: gece batch, pipeline, admin endpoint, queue.
+    # Geri açmak için: BILANCO_AI_ENABLED = True
+    if not BILANCO_AI_ENABLED:
+        logger.info(
+            "Bilanço AI ATLANDI (BILANCO_AI_ENABLED=False): %s — kredi harcanmadı", ticker,
+        )
+        return None
+
     if not financials:
         logger.warning("Bilanço analizi için veri yok: %s", ticker)
         return None
