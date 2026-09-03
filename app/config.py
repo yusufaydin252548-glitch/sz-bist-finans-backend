@@ -104,6 +104,26 @@ class Settings(BaseSettings):
     # Tavily API — web arama (tavan/taban sebep analizi)
     TAVILY_API_KEY: str = ""
 
+    # ── KAP / MKK API Portal — resmi KAP Veri Yayin Servisleri ──────────
+    # apiportal.mkk.com.tr > Applications > "Borsa Haber Platformu" >
+    #   Sandbox/Production Keys (Consumer Key + Consumer Secret)
+    # Eski HTML scraping'in (app/scrapers/kap_scraper.py) yerini alacak
+    # resmi, sozlesmeli kaynak. Istemci: app/scrapers/kap_api_client.py
+    #
+    # Test/dev auth: Authorization: Basic base64(CLIENT_ID:CLIENT_SECRET)
+    #               (DOGRULANDI — token gerekmez)
+    KAP_API_CLIENT_ID: str = ""       # Consumer Key
+    KAP_API_CLIENT_SECRET: str = ""   # Consumer Secret
+    # Gateway adresi. Test/dev adres OpenAPI semasindan; canli adres
+    # MKK onayindan sonra bildirilir.
+    KAP_API_BASE_URL: str = "https://apigwdev.mkk.com.tr"
+    KAP_API_PREFIX: str = "/api/vyk"
+    # Canli ortam: True -> Authorization: Bearer <token>. Test'te False.
+    KAP_API_USE_TOKEN: bool = False
+    # Canli generateToken endpoint'i (portal Documentation'dan). USE_TOKEN
+    # True iken zorunlu.
+    KAP_API_TOKEN_URL: str = ""
+
     # Scraping intervals (saniye)
     KAP_SCRAPE_INTERVAL_SECONDS: int = 1800   # 30 dakika — halka arz
     NEWS_SCRAPE_INTERVAL_SECONDS: int = 30     # 30 saniye — KAP haberler
