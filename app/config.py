@@ -124,6 +124,20 @@ class Settings(BaseSettings):
     # True iken zorunlu.
     KAP_API_TOKEN_URL: str = ""
 
+    # ── Faz 1 — Sub-Agent Icerik Motoru (01-faz1-sub-agent-icerik-motoru.md) ──
+    # Bildirim kaynagi secimi (app/scrapers/source_factory.get_disclosure_source):
+    #   "borsapy" → Yol A / MVP (varsayilan, tek kutuphaneden bildirim+sektor)
+    #   "kap_api" → Yol B / resmi KAP API (kurumsal kimlik + sozlesme sonrasi)
+    CONTENT_DATA_SOURCE: str = "borsapy"
+    # Icerik motoru ana anahtari — scheduler/pipeline bu False iken calismaz.
+    CONTENT_ENGINE_ENABLED: bool = False
+    # Uretim dili: "tr" | "en". Digeri ceviri agent'i ile uretilir (§6.2).
+    CONTENT_DEFAULT_LANG: str = "tr"
+    # Tek turda islenecek azami bildirim (Yol B'de 6/dk limitine saygi).
+    CONTENT_INGEST_BATCH: int = 20
+    # borsapy takip evreni — bos ise XU100 bilesenleri otomatik cekilir.
+    CONTENT_BORSAPY_TICKERS: str = ""
+
     # Scraping intervals (saniye)
     KAP_SCRAPE_INTERVAL_SECONDS: int = 1800   # 30 dakika — halka arz
     NEWS_SCRAPE_INTERVAL_SECONDS: int = 30     # 30 saniye — KAP haberler

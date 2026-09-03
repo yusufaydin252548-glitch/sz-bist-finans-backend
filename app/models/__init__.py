@@ -34,6 +34,7 @@ from app.models.business_deal import BusinessDeal
 from app.models.company_financial import CompanyFinancial, FinancialRatio, IPOVote, AIAssistantUsage
 from app.models.earnings_calendar import EarningsCalendar
 from app.models.stock_sector import StockSector
+from app.models.content_pipeline_item import ContentPipelineItem
 
 __all__ = [
     "IPO", "IPOBroker", "IPOAllocation", "IPOCeilingTrack", "DeletedIPO",
@@ -68,4 +69,5 @@ __all__ = [
     "CompanyFinancial", "FinancialRatio", "IPOVote", "AIAssistantUsage",
     "EarningsCalendar",
     "StockSector",
+    "ContentPipelineItem",
 ]

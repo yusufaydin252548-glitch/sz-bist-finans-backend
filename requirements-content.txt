@@ -1,0 +1,11 @@
+# Faz 1 — Sub-Agent Icerik Motoru: opsiyonel ek bagimliliklar
+# (01-faz1-sub-agent-icerik-motoru.md)
+#
+# Ana requirements.txt'e KATILMADI: borsapy lisansi "kisisel/egitim amacli"
+# (§6.3) ve surum/derleme riski deploy'u kirmasin diye ayri tutuldu.
+# Yol A (CONTENT_DATA_SOURCE=borsapy) kullanacaksan:
+#     pip install -r requirements-content.txt
+# Yol B (CONTENT_DATA_SOURCE=kap_api) icin bu dosya GEREKMEZ — httpx yeterli.
+
+borsapy
+pandas

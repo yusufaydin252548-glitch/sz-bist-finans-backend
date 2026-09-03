@@ -940,6 +940,51 @@ async def init_db():
         except Exception:
             pass
 
+        # v57 migration: content_pipeline_items — Faz 1 sub-agent icerik motoru
+        # (01-faz1-sub-agent-icerik-motoru.md §7 DB taslagi). create_all zaten
+        # olusturur; bu blok production'da model import edilmese de garanti eder.
+        try:
+            await conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS content_pipeline_items (
+                    id SERIAL PRIMARY KEY,
+                    source VARCHAR(16) NOT NULL,
+                    source_ref VARCHAR(255) NOT NULL,
+                    disclosure_index BIGINT,
+                    disclosure_class VARCHAR(8),
+                    company_id VARCHAR(32),
+                    stock_code VARCHAR(16),
+                    sector_name VARCHAR(80),
+                    sector_index VARCHAR(10),
+                    title TEXT NOT NULL DEFAULT '',
+                    kap_url TEXT,
+                    published_at TIMESTAMPTZ,
+                    raw_html TEXT,
+                    clean_text TEXT,
+                    summary TEXT,
+                    analysis_notes TEXT,
+                    status VARCHAR(16) NOT NULL DEFAULT 'pending',
+                    status_detail TEXT,
+                    attempts INTEGER NOT NULL DEFAULT 0,
+                    tr_blog_post_id INTEGER,
+                    en_blog_post_id INTEGER,
+                    created_at TIMESTAMPTZ DEFAULT NOW(),
+                    updated_at TIMESTAMPTZ DEFAULT NOW(),
+                    published_at_pipeline TIMESTAMPTZ,
+                    CONSTRAINT uq_content_pipeline_source_ref UNIQUE (source, source_ref)
+                )
+            """))
+            await conn.execute(text(
+                "CREATE INDEX IF NOT EXISTS idx_content_pipeline_status ON content_pipeline_items(status)"
+            ))
+            await conn.execute(text(
+                "CREATE INDEX IF NOT EXISTS idx_content_pipeline_stock ON content_pipeline_items(stock_code)"
+            ))
+            await conn.execute(text(
+                "CREATE INDEX IF NOT EXISTS idx_content_pipeline_published ON content_pipeline_items(published_at)"
+            ))
+        except Exception:
+            pass
+
         # Timeout'ları resetle — normal çalışma için
         try:
             await conn.execute(text("SET lock_timeout = '0'"))

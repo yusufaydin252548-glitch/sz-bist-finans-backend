@@ -7,6 +7,16 @@ from app.scrapers.halkarz_scraper import HalkArzScraper
 from app.scrapers.spk_ihrac_scraper import SPKIhracScraper
 from app.scrapers.gedik_scraper import GedikScraper
 
+# Faz 1 — sub-agent icerik motoru: bildirim kaynagi soyutlamasi
+from app.scrapers.disclosure_source import (
+    DisclosureSource,
+    DisclosureRef,
+    DisclosureContent,
+)
+from app.scrapers.kap_api_source import KAPApiSource
+from app.scrapers.borsapy_source import BorsapySource
+from app.scrapers.source_factory import get_disclosure_source
+
 __all__ = [
     "KAPScraper",
     "KAPApiClient",
@@ -16,4 +26,10 @@ __all__ = [
     "HalkArzScraper",
     "SPKIhracScraper",
     "GedikScraper",
+    "DisclosureSource",
+    "DisclosureRef",
+    "DisclosureContent",
+    "KAPApiSource",
+    "BorsapySource",
+    "get_disclosure_source",
 ]
