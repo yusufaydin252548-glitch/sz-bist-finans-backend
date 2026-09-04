@@ -267,7 +267,7 @@ Bu proje, ayrıca **Claude Code** ile kodlanmaya başlanmış durumda (`app/`, `
 
 MKK'nın **kapdestek@mkk.com.tr** üzerinden verdiği resmi cevap, production sürecini tamamen netleştirdi:
 
-🚨 **KRİTİK BULGU — Kurumsal kimlik zorunlu:** *"Canlı ortam erişimi için kurumsal bir kimliğe sahip olunması gerekmektedir. **Bireysel abonelik bulunmamaktadır.**"* Bu, projenin gerçek kullanıcılara açılabilmesi için **önce bir şirket (ör. limited şirket) kurulması gerektiği** anlamına geliyor — bireysel/öğrenci olarak şu anki haliyle production erişimi mümkün değil. Bu, projenin genel iş planında (00-genel-bakis.md) ayrıca ele alınması gereken bir ön koşul.
+🚨 **KRİTİK BULGU — Kurumsal kimlik zorunlu:** *"Canlı ortam erişimi için kurumsal bir kimliğe sahip olunması gerekmektedir. **Bireysel abonelik bulunmamaktadır.**"* Bu, projenin gerçek kullanıcılara açılabilmesi için **önce bir şirket (ör. limited şirket) kurulması gerektiği** anlamına geliyor — bireysel/öğrenci olarak şu anki haliyle production erişimi mümkün değil. Bu, proje genelinde ayrıca ele alınması gereken bir ön koşul.
 
 | Konu | Kesinleşen Cevap |
 |---|---|
@@ -311,7 +311,7 @@ BIST'in kendi resmi sektör sınıflandırması kullanılacak. **borsapy** küt�
 🚨 **KRİTİK LİSANS UYARISI:** borsapy'nin resmi dokümantasyonunda açıkça şu uyarı var:
 > *"Bu kütüphane yalnızca kişisel kullanım ve eğitim amaçlıdır. **Ticari yazılım ürünleri geliştirmek, ticari hizmetlerde kullanmak veya herhangi bir ticari amaçla kullanılamaz.** Ticari kullanım için uygun bir lisans satın almak üzere Borsa İstanbul ile iletişime geçmelisiniz."*
 
-Bu bulgu nedeniyle **Faz 4 (Abonelik) şimdilik yol haritasından çıkarıldı** (bkz. `00-genel-bakis.md`) — platform önce ücretsiz/kişisel proje aşamasında (**Yol A**) geliştirilecek. Ama şu netçe not düşülmeli: platform gerçek kullanıcılara açılıp **halka açık bir servis** haline geldiğinde (abonelik olmasa bile) hem borsapy'nin lisans şartları hem KAP'ın Veri Yayın Sözleşmesi (§6.1.4) gerekecek — ikisi de aynı temel kısıtın (BIST/MKK verisinin ticari/kamuya açık kullanımı) farklı yüzleri. İki uzun vadeli seçenek var:
+Bu bulgu nedeniyle **Faz 4 (Abonelik) şimdilik yol haritasından çıkarıldı** — platform önce ücretsiz/kişisel proje aşamasında (**Yol A**) geliştirilecek. Ama şu netçe not düşülmeli: platform gerçek kullanıcılara açılıp **halka açık bir servis** haline geldiğinde (abonelik olmasa bile) hem borsapy'nin lisans şartları hem KAP'ın Veri Yayın Sözleşmesi (§6.1.4) gerekecek — ikisi de aynı temel kısıtın (BIST/MKK verisinin ticari/kamuya açık kullanımı) farklı yüzleri. İki uzun vadeli seçenek var:
 1. **Borsa İstanbul ile iletişime geçip ticari lisans satın almak** (borsapy'nin kendi önerdiği yol) — muhtemelen KAP Veri Yayın Sözleşmesi ile aynı süreç/görüşme kapsamında birlikte çözülebilir
 2. Sektör/endeks eşleştirme verisini **kendi kaynağımızdan** oluşturmak (uzun vadede daha bağımsız ama daha maliyetli)
 
