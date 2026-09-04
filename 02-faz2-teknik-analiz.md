@@ -60,21 +60,21 @@ Varsayılan olarak **~15 dakika gecikmeli**. Gerçek zamanlı için TradingView 
 
 ---
 
-## 3. Açık Sorular — İlk Değerlendirme
+## 3. Açık Sorular — Cevaplandı
 
-### 3.1 Hangi teknik analiz modları desteklenecek?
-**Öneri:** MVP'de 3 mod yeterli olur:
+### 3.1 Hangi teknik analiz modları desteklenecek? — ✅ KARARLAŞTIRILDI
+MVP'de 3 mod ile başlanacak:
 1. **Genel Bakış** — `ta_signals()` özeti (AL/SAT/TUT + kaç gösterge hangi yönde)
 2. **Grafik + Gösterge** — `history_with_indicators()` ile mum grafiği üzerine RSI/MACD/Bollinger seçilebilir katmanlar
 3. **Tarama (Screener)** — hazır şablonlar (`high_dividend`, `low_pe`, `high_roe`) + özel filtre kurucu
 
-### 3.2 Gerçek zamanlı mı, gecikmeli mi?
-**Öneri:** MVP'de **15 dakika gecikmeli** (varsayılan, ek maliyet yok) ile başla. Gerçek zamanlı veri hem TradingView Pro aboneliği hem BIST Real-time paketi gerektiriyor — bu, kullanıcı talebi netleşmeden erken bir maliyet. İleride premium bir özellik olarak değerlendirilebilir (not: Faz 4 abonelik şu an planlama dışı, bkz. `00-genel-bakis.md`).
+### 3.2 Gerçek zamanlı mı, gecikmeli mi? — ✅ KARARLAŞTIRILDI
+MVP'de **15 dakika gecikmeli** (varsayılan, ek maliyet yok) ile başlanacak. Gerçek zamanlı veri hem TradingView Pro aboneliği hem BIST Real-time paketi gerektiriyor — bu, kullanıcı talebi netleşmeden erken bir maliyet. İleride premium bir özellik olarak değerlendirilebilir (not: Faz 4 abonelik şu an planlama dışı, bkz. `00-genel-bakis.md`).
 
-### 3.3 Grafik kütüphanesi seçimi
-**Öneri:** Next.js frontend'de **TradingView Lightweight Charts** (ücretsiz, açık kaynak, hafif) — `history_with_indicators()` çıktısı bu kütüphanenin beklediği formata kolayca dönüştürülebilir. TradingView'ın ücretli widget'larına gerek yok.
+### 3.3 Grafik kütüphanesi seçimi — ✅ KARARLAŞTIRILDI
+Next.js frontend'de **TradingView Lightweight Charts** (ücretsiz, açık kaynak, hafif) kullanılacak — `history_with_indicators()` çıktısı bu kütüphanenin beklediği formata kolayca dönüştürülebilir. TradingView'ın ücretli widget'larına gerek yok.
 
-### 3.4 Kullanıcı bazlı özelleştirme (izleme listesi, alarm)
+### 3.4 Kullanıcı bazlı özelleştirme (izleme listesi, alarm) — ⏳ AÇIK
 Henüz karar verilmedi — kullanıcı hesap sistemi Faz 3 (Community) ile birlikte düşünülmeli, çünkü ikisi de "kullanıcı profili" kavramına dayanıyor. Faz 3 planlanırken bu soru birlikte ele alınmalı.
 
 ---
