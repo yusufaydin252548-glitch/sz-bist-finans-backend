@@ -1,0 +1,308 @@
+<title>Borsa Cebimde</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0f1a;
+    --panel: #131826;
+    --panel-elevated: #1b2233;
+    --border: #262e42;
+    --border-subtle: #1c2334;
+    --text-primary: #e7eaf3;
+    --text-secondary: #b4bcd0;
+    --text-muted: #8891a8;
+    --text-faint: #5b637a;
+    --accent-gold: #d4a857;
+    --accent-rose: #c1554b;
+    --accent-teal: #4fa8a0;
+    --font-display: "Fraunces", Georgia, serif;
+    --font-body: "IBM Plex Sans", system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+    --radius-sm: 4px;
+    --radius-md: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    display: flex;
+    min-height: 100vh;
+  }
+  aside {
+    width: 220px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    padding: 24px 12px;
+    display: flex;
+    flex-direction: column;
+  }
+  .logo { font-family: var(--font-display); font-size: 20px; padding: 0 12px; margin-bottom: 32px; }
+  nav { display: flex; flex-direction: column; gap: 4px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 8px 12px; border-radius: var(--radius-sm);
+    font-size: 14px; color: var(--text-muted); text-decoration: none;
+  }
+  .nav-item.active { color: var(--text-primary); background: var(--panel-elevated); }
+  .nav-item.active svg { color: var(--accent-gold); }
+  .nav-item svg { width: 16px; height: 16px; }
+  .login-link { margin-top: auto; padding: 0 12px; font-size: 12px; color: var(--text-muted); }
+
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  header { border-bottom: 1px solid var(--border); padding: 16px 24px; }
+  input {
+    width: 100%; max-width: 400px; background: var(--panel);
+    border: 1px solid var(--border); color: var(--text-primary);
+    font-family: var(--font-mono); font-size: 14px;
+    padding: 8px 16px; border-radius: var(--radius-sm); outline: none;
+  }
+  input::placeholder { color: var(--text-faint); }
+
+  main { flex: 1; padding: 32px 24px; }
+
+  .hero { margin-bottom: 48px; }
+  .hero-label { color: var(--text-muted); font-size: 14px; margin-bottom: 8px; }
+  .hero-value { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+  .hero-number { font-family: var(--font-mono); font-size: 56px; }
+  .hero-change { font-family: var(--font-mono); font-size: 18px; color: var(--accent-gold); }
+
+  .avatar { display: flex; align-items: center; justify-content: center; border-radius: 6px; font-family: var(--font-mono); font-weight: 500; flex-shrink: 0; }
+
+  h2.section-title { font-family: var(--font-display); font-size: 24px; margin-bottom: 16px; font-weight: 400; }
+
+  .modes { border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; margin-bottom: 48px; }
+  .mode-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 24px; text-decoration: none; color: inherit;
+    border-top: 1px solid var(--border-subtle);
+  }
+  .mode-row:first-child { border-top: none; }
+  .mode-row:hover { background: var(--panel); }
+  .mode-left { display: flex; align-items: center; gap: 16px; }
+  .mode-icon { width: 36px; height: 36px; border-radius: 4px; background: var(--panel-elevated); border: 1px solid var(--border); color: var(--accent-gold); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .mode-icon svg { width: 16px; height: 16px; }
+  .mode-title { font-family: var(--font-display); font-size: 18px; margin-bottom: 4px; }
+  .mode-desc { color: var(--text-muted); font-size: 14px; }
+  .mode-arrow { color: var(--text-faint); font-size: 20px; }
+
+  .watchlist-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .watchlist-header a { color: var(--text-muted); font-size: 14px; text-decoration: none; }
+  .watchlist { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; }
+  .watchlist-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 24px; border-top: 1px solid var(--border-subtle);
+  }
+  .watchlist-row:first-child { border-top: none; }
+  .row-left { display: flex; align-items: center; gap: 12px; }
+  .symbol { font-family: var(--font-mono); font-weight: 500; }
+  .row-right { display: flex; align-items: center; gap: 24px; }
+  .price { font-family: var(--font-mono); color: var(--text-secondary); font-size: 14px; }
+  .change { font-family: var(--font-mono); font-size: 14px; width: 60px; text-align: right; }
+  .change.up { color: var(--accent-gold); }
+  .change.down { color: var(--accent-rose); }
+  .badge {
+    font-size: 12px; padding: 2px 8px; border-radius: var(--radius-sm);
+    border: 1px solid; width: 48px; text-align: center; display: inline-block;
+  }
+  .badge.al { color: var(--accent-gold); border-color: var(--accent-gold); }
+  .badge.sat { color: var(--accent-rose); border-color: var(--accent-rose); }
+  .badge.tut { color: var(--accent-teal); border-color: var(--accent-teal); }
+
+  .markets-table { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; margin-bottom: 48px; overflow-x: auto; }
+  .markets-header, .markets-row { display: grid; grid-template-columns: 220px 130px 130px 110px 150px; column-gap: 6px; align-items: center; min-width: 760px; }
+  .markets-header { padding: 12px 24px; font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); border-bottom: 1px solid var(--border-subtle); }
+  .markets-row { padding: 12px 24px; border-top: 1px solid var(--border-subtle); }
+  .markets-row:hover { background: var(--panel-elevated); }
+  .markets-name { display: flex; align-items: center; gap: 12px; font-size: 14px; }
+  .code-badge { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); border: 1px solid var(--border); padding: 2px 6px; border-radius: var(--radius-sm); }
+  .markets-pill { display: inline-block; font-size: 12px; padding: 4px 8px; border-radius: var(--radius-sm); border: 1px solid; width: fit-content; font-family: var(--font-mono); }
+  .markets-pill.up { color: var(--accent-gold); border-color: rgba(212,168,87,0.3); background: rgba(212,168,87,0.1); }
+  .markets-pill.down { color: var(--accent-rose); border-color: rgba(193,85,75,0.3); background: rgba(193,85,75,0.1); }
+  .markets-mono { font-family: var(--font-mono); font-size: 14px; }
+  .markets-mono.teal { color: var(--accent-teal); }
+  .markets-mono.up { color: var(--accent-gold); }
+  .markets-mono.down { color: var(--accent-rose); }
+  .markets-daily { display: flex; align-items: center; gap: 8px; }
+</style>
+
+<aside>
+  <div class="logo">Borsa Cebimde</div>
+  <nav>
+    <a class="nav-item active" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 11l9-7 9 7" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 10v10h14V10" stroke-linecap="round" stroke-linejoin="round"/></svg>Ana Sayfa</a>
+    <a class="nav-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12h4l2-7 4 14 2-7h6" stroke-linecap="round" stroke-linejoin="round"/></svg>Genel Bakış</a>
+    <a class="nav-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20V10M11 20V4M18 20v-7" stroke-linecap="round"/></svg>Grafik</a>
+    <a class="nav-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.3-4.3" stroke-linecap="round"/></svg>Tarama</a>
+    <a class="nav-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6-4.5-4.2 6.1-.7L12 3z" stroke-linejoin="round"/></svg>İzleme Listesi</a>
+  </nav>
+  <div class="login-link"><a href="#" style="color:inherit; text-decoration:none;">Giriş yap</a></div>
+</aside>
+
+<div class="main">
+  <header>
+    <input placeholder="Hisse ara — THYAO, ASELS, GARAN..." />
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-label">BIST 100</div>
+      <div class="hero-value">
+        <span class="hero-number">10.452,30</span>
+        <span class="hero-change">▲ %1,24</span>
+        <svg id="heroSpark" width="140" height="36" viewBox="0 0 140 36"></svg>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="section-title">Piyasalar</h2>
+      <div class="markets-table">
+        <div class="markets-header">
+          <div>Endeks</div>
+          <div>Yıllık Getiri</div>
+          <div>Temettü Verimi</div>
+          <div>Değer</div>
+          <div>Günlük Değişim</div>
+        </div>
+        <div class="markets-row">
+          <div class="markets-name"><span class="code-badge">XU100</span><span>BIST 100</span></div>
+          <div class="markets-pill up">+18,40%</div>
+          <div class="markets-mono teal">+3,10%</div>
+          <div class="markets-mono">10.452,3</div>
+          <div class="markets-daily"><span class="markets-mono up">+128,4</span><span class="markets-pill up">+1,24%</span></div>
+        </div>
+        <div class="markets-row">
+          <div class="markets-name"><span class="code-badge">XBANK</span><span>BIST Bankacılık</span></div>
+          <div class="markets-pill up">+22,70%</div>
+          <div class="markets-mono teal">+4,20%</div>
+          <div class="markets-mono">10.688,0</div>
+          <div class="markets-daily"><span class="markets-mono down">-42,1</span><span class="markets-pill down">-0,39%</span></div>
+        </div>
+        <div class="markets-row">
+          <div class="markets-name"><span class="code-badge">XUSIN</span><span>BIST Sınai</span></div>
+          <div class="markets-pill up">+14,90%</div>
+          <div class="markets-mono teal">+2,60%</div>
+          <div class="markets-mono">9.958,4</div>
+          <div class="markets-daily"><span class="markets-mono up">+33,7</span><span class="markets-pill up">+0,34%</span></div>
+        </div>
+        <div class="markets-row">
+          <div class="markets-name"><span class="code-badge">XUTEK</span><span>BIST Teknoloji</span></div>
+          <div class="markets-pill down">-4,20%</div>
+          <div class="markets-mono teal">+0,80%</div>
+          <div class="markets-mono">5.041,2</div>
+          <div class="markets-daily"><span class="markets-mono down">-18,6</span><span class="markets-pill down">-0,37%</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="section-title">Ne yapmak istersin?</h2>
+      <div class="modes">
+        <a class="mode-row" href="#">
+          <div class="mode-left">
+            <div class="mode-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12h4l2-7 4 14 2-7h6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div>
+              <div class="mode-title">Genel Bakış</div>
+              <div class="mode-desc">Bir hissenin AL/SAT/TUT sinyal özetini tek bakışta gör.</div>
+            </div>
+          </div>
+          <span class="mode-arrow">→</span>
+        </a>
+        <a class="mode-row" href="#">
+          <div class="mode-left">
+            <div class="mode-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20V10M11 20V4M18 20v-7" stroke-linecap="round"/></svg></div>
+            <div>
+              <div class="mode-title">Grafik & Gösterge</div>
+              <div class="mode-desc">Mum grafiği üzerinde RSI, MACD, Bollinger katmanlarını incele.</div>
+            </div>
+          </div>
+          <span class="mode-arrow">→</span>
+        </a>
+        <a class="mode-row" href="#">
+          <div class="mode-left">
+            <div class="mode-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.3-4.3" stroke-linecap="round"/></svg></div>
+            <div>
+              <div class="mode-title">Tarama</div>
+              <div class="mode-desc">Hazır şablonlar veya kendi kriterlerinle hisse tara.</div>
+            </div>
+          </div>
+          <span class="mode-arrow">→</span>
+        </a>
+      </div>
+    </section>
+
+    <section>
+      <div class="watchlist-header">
+        <h2 class="section-title" style="margin-bottom:0;">İzleme Listem</h2>
+        <a href="#">Tümünü gör</a>
+      </div>
+      <div class="watchlist">
+        <div class="watchlist-row">
+          <div class="row-left"><div class="avatar" data-sym="THYAO" style="width:28px;height:28px;font-size:10px;"></div><span class="symbol">THYAO</span></div>
+          <div class="row-right">
+            <svg width="60" height="20" viewBox="0 0 60 20" data-spark="238,240,239,242,244,243,245.6" data-color="var(--accent-gold)"></svg>
+            <span class="price">245,60</span>
+            <span class="change up">+2,1%</span>
+            <span class="badge al">AL</span>
+          </div>
+        </div>
+        <div class="watchlist-row">
+          <div class="row-left"><div class="avatar" data-sym="ASELS" style="width:28px;height:28px;font-size:10px;"></div><span class="symbol">ASELS</span></div>
+          <div class="row-right">
+            <svg width="60" height="20" viewBox="0 0 60 20" data-spark="91,90.5,90,89.8,89.5,89.4,89.3" data-color="var(--accent-rose)"></svg>
+            <span class="price">89,30</span>
+            <span class="change down">-0,8%</span>
+            <span class="badge tut">TUT</span>
+          </div>
+        </div>
+        <div class="watchlist-row">
+          <div class="row-left"><div class="avatar" data-sym="GARAN" style="width:28px;height:28px;font-size:10px;"></div><span class="symbol">GARAN</span></div>
+          <div class="row-right">
+            <svg width="60" height="20" viewBox="0 0 60 20" data-spark="116,115,114.2,113.5,113,112.7,112.4" data-color="var(--accent-rose)"></svg>
+            <span class="price">112,40</span>
+            <span class="change down">-1,6%</span>
+            <span class="badge sat">SAT</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+  // Sembol avatarları — SymbolAvatar.tsx ile aynı mantık (deterministik renk + baş harf)
+  const PALETTE = ['#d4a857', '#4fa8a0', '#8a7fc7', '#c1554b', '#5b8fc7', '#a3894f', '#6fb08f', '#c78f5b'];
+  function hashStr(s) {
+    let h = 0;
+    for (let i = 0; i < s.length; i++) { h = (h << 5) - h + s.charCodeAt(i); h |= 0; }
+    return Math.abs(h);
+  }
+  document.querySelectorAll('.avatar[data-sym]').forEach(el => {
+    const sym = el.dataset.sym;
+    const color = PALETTE[hashStr(sym) % PALETTE.length];
+    el.style.background = color + '22';
+    el.style.border = '1px solid ' + color + '55';
+    el.style.color = color;
+    el.textContent = sym.slice(0, 2).toUpperCase();
+  });
+
+  // Mini sparkline'lar — watchlist satırları ve hero
+  function drawSpark(svg, data, color, w, h) {
+    const min = Math.min(...data), max = Math.max(...data), range = (max - min) || 1;
+    const pts = data.map((v, i) => `${(i/(data.length-1))*w},${h-((v-min)/range)*h}`).join(' ');
+    const area = `0,${h} ${pts} ${w},${h}`;
+    svg.innerHTML = `
+      <polygon points="${area}" fill="${color}" opacity="0.08"></polygon>
+      <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5"></polyline>
+    `;
+  }
+  document.querySelectorAll('svg[data-spark]').forEach(svg => {
+    const data = svg.dataset.spark.split(',').map(Number);
+    const color = svg.dataset.color.startsWith('var(') ? getComputedStyle(document.documentElement).getPropertyValue(svg.dataset.color.slice(4, -1)).trim() : svg.dataset.color;
+    drawSpark(svg, data, color, 60, 20);
+  });
+
+  const heroSpark = document.getElementById('heroSpark');
+  if (heroSpark) {
+    drawSpark(heroSpark, [10180,10220,10190,10260,10310,10280,10340,10390,10420,10452], '#d4a857', 140, 36);
+  }
+</script>
