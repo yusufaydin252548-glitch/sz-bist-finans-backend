@@ -42,24 +42,64 @@ Bu akış tamamen test edildi ve çalışıyor (bkz. §6.1), ama **gerçek kulla
 
 ---
 
-## 3. Sub-Agent Mimarisi
+## 3. Sub-Agent & Filtreleme Mimarisi
 
-Çok sayıda sub-agent olacağı belirtildiği için hiyerarşik/rol bazlı bir yapı öneriliyor. Roller, iki yola da uyacak şekilde soyutlandı (veri kaynağı Yol A/B arasında değişse de agent yapısı aynı kalır):
+Sistemin verimli çalışması, LLM maliyetinin kontrol altında tutulması ve kullanıcıya gereksiz bildirim kalabalığı sunulmaması için bildirimler önce **Haber Değeri / Piyasa Etki Filtresi (Triage)** katmanından geçer. Ardından optimize edilmiş sub-agent zincirine iletilir.
+
+### 3.1 Haber Değeri & Önceliklendirme Filtresi (Triage Matrisi: 1 - 10)
+
+```
+[Ham Bildirim] 
+       │
+       ▼
+[Aşama 1: Kural Bazlı Hızlı Filtre] (Regex / Başlık & Konu Taraması — 0 LLM Token)
+       │
+       ├─► Rutin/Bürokratik (Skor: 1-3) ──► [Ham Bildirim Olarak Kaydet / Blog Yazma]
+       │
+       ▼
+[Aşama 2: AI Triage & Etki Skorer] (Hafif Model / Structured JSON — Düşük Token)
+       │
+       ▼
+[Detay & Ayrıştırma Agent] (yalnızca Skor ≥ 4 — tam içerik çekilir + decode edilir)
+       │
+       ├─► Orta Önem (Skor: 4-6) ────────► [Flash Haber: 2 Cümlelik Özet Kartı]
+       │
+       └─► Kritik / Yüksek (Skor: 7-10) ──► [Derin Blog Sub-Agent Zinciri]
+```
+
+#### Aşama 1: Kural Bazlı Ön Eleme (Sıfır LLM Maliyeti)
+- **Skor 1 - 3 (Rutin/Bürokratik):** Adres değişikliği, tescil duyurusu, bağımsız üye ataması, denetim kurulu rapor teslimi, rutin komite toplantıları. *Eylem: Blog veya Flash haber yazılmaz. Sadece ham bildirim listesinde tutulur.*
+- **Skor 7 - 9 (Sermaye / Temettü):** Bedelsiz/bedelli sermaye artırımı, temettü kararı, SPK başvuru/onayları. *Eylem: Doğrudan yüksek öncelikli analiz akışına sevk edilir.*
+- **Skor 8 - 10 (Büyüme & Ticari):** "Yeni İş İlişkisi", "Sözleşme İmzalanması", "İhale Kazanılması", "Devralma / Birleşme". *Eylem: Ciro etkisi incelenmek üzere AI Skorer'a sevk edilir.*
+- **Skor 9 - 10 (Finansal Tablo):** Çeyreklik/Yıllık Bilanço (FR). *Eylem: Bilanço analiz modülüne sevk edilir.*
+- **Skor 6 - 8 (Ceza / Tedbir):** VBTS tedbiri, brüt takas, işlem sırası durdurma. *Eylem: Acil bildirim akışı.*
+
+#### Aşama 2: AI Triage & Etki Skorer Boyutları (4 Parametre)
+1. **Finansal Büyüklük & Ciroya Oran (%40):** Yeni iş hacmi şirketin yıllık cirosunun % kaçı?
+2. **Piyasa Algısı & Fiyat Etkisi (%30):** Hisse fiyatını sert hareket ettirebilecek bir haber mi?
+3. **Sektörel Önem & Şirket Büyüklüğü (%15):** BIST 30 / 100 lokomotif şirketleri daha geniş kitleye ulaştığı için önceliklidir.
+4. **Sürpriz / Beklenti Dışı Faktörü (%15):** Beklenen rutin süreç mi yoksa sürpriz bir gelişme mi?
+
+---
+
+### 3.2 Optimize Edilmiş Sub-Agent Rolleri
+
+LLM çağrı maliyetini ve yanıt süresini (latency) düşürmek için analiz, yazım ve kalite kontrol adımları **birleşik prompt (prompt consolidation)** yaklaşımıyla optimize edilmiştir:
 
 | Agent Rolü | Görev | Girdi | Çıktı |
 |---|---|---|---|
-| **Orkestratör** | Rate limit'e uygun şekilde tüm zinciri tetikler, hata/backoff yönetir | Zamanlayıcı (cron) | İş kuyruğuna görevler |
-| **Kaynak Tarayıcı Agent** | Yeni bildirimleri tespit eder — **Yol A:** `Ticker.news`, **Yol B:** `lastDisclosureIndex`+`disclosures` | Son işlenen tarih/index | Bildirim listesi (başlık, şirket, kaynak ID) |
-| **Detay Çekici Agent** | Tam bildirim içeriğini çeker (Yol B'de ayrı adım; Yol A'da `news` zaten içerik döndürebilir) | Bildirim referansı | Ham içerik |
-| **Ayrıştırıcı (Parser) Agent** | Gerekirse Base64 çözer, HTML'den düz metin çıkarır (Yol B için) | Ham içerik | Temiz metin + meta veri |
-| **Sektör Eşleştirici Agent** | Şirketi sektöre eşleştirir — her iki yolda da `borsapy` (`bp.sectors()`, `info["sector"]`) kullanılıyor | companyId/stockCode | Sektör etiketi |
-| **Analiz/Özetleyici Agent** | Temiz metni bağlamsallaştırır (ör. "bu sermaye artırımı ne anlama geliyor") | Temiz metin | Analiz notları |
-| **Yazar (Writer) Agent** | Blog formatında, SEO uyumlu yazı üretir (Claude API) | Temiz metin + analiz + sektör | Taslak blog yazısı |
-| **Çeviri/Lokalizasyon Agent** | İçeriği İngilizce'ye çevirir (bkz. §6.2) | TR taslak | EN taslak |
-| **Editör/Kalite Kontrol Agent** | Otomatik doğrulama: sayısal verileri kaynakla çapraz kontrol eder, halüsinasyon riskini azaltır, yayına onaylar | Taslak (TR+EN) | Onaylı/reddedilmiş içerik |
-| **Yayıncı Agent** | Onaylanan içeriği veritabanına yazar, zamanlar (Yol A'da: kapalı/test modu; Yol B'de: herkese açık) | Onaylı içerik | Yayınlanmış yazı |
+| **Orkestratör** | Rate limit'e uygun şekilde zinciri tetikler, iş kuyruğunu yönetir | Zamanlayıcı (cron) / webhook | İş kuyruğuna görevler |
+| **Kaynak Tarayıcı Agent** | Yeni bildirimleri tespit eder — **Yol A:** `Ticker.news`, **Yol B:** `lastDisclosureIndex`+`disclosures` (başlık/özet seviyesinde, tam içerik değil) | Son işlenen tarih/index | Ham bildirim listesi (başlık + kısa özet) |
+| **Triage & Önceliklendirme Agent** | Kural + hafif LLM ile haber değerini puanlar (1-10) ve yayın sınıfını belirler — sadece başlık/özet üzerinden çalışır, tam içeriğe ihtiyaç duymaz | Ham bildirim (başlık + özet) | Etki Skoru (1-10) + Yayın Tipi (`raw` / `flash` / `blog`) |
+| **Detay & Ayrıştırma Agent** (yalnızca Skor ≥ 4) | Tam bildirim içeriğini çeker (Yol B: `disclosureDetail`) ve gerekiyorsa Base64 çözüp HTML'den düz metin çıkarır — Skor 1-3 (rutin) için hiç çalışmaz, KAP API çağrı sayısını triage sonrası sınırlı tutar | Etki Skoru ≥ 4 olan bildirim referansı | Temiz tam metin |
+| **Sektör Eşleştirici Agent** | Şirketi BIST sektörüne eşleştirir (`borsapy` / `Index.components`) | companyId/stockCode | Sektör etiketi (XBANK, XGIDA vb.) |
+| **Flash Haber Agent (Orta Önem: 4-6)** | 2-3 cümlelik "Ne oldu? Tutarı ne? Etkisi ne?" formatında anlık özet üretir | Temiz tam metin | Flash haber kartı |
+| **Yazar & Analiz Agent (Kritik: 7-10)** | Yapılandırılmış JSON çıktısıyla hem bağlamsal analizi hem SEO uyumlu blog taslağını tek seferde üretir | Temiz tam metin + geçmiş bağlam + sektör | Taslak blog yazısı (Başlık, Özet, Analiz, Etki) |
+| **Doğrulama & Editör Agent** | Sayısal tutarları ve tarihleri kaynak bildirimle çapraz kontrol eder; halüsinasyon riskini sıfırlar | Kaynak veri + Taslak | Yayına hazır içerik |
+| **Lokalizasyon / Çeviri Agent** | Yüksek skorlu blog yazılarını İngilizce'ye çevirir (İki dilli yayın için) | Onaylı TR içerik | Onaylı EN içerik |
+| **Yayıncı Agent** | İçeriği PostgreSQL veritabanına ve frontend yayın kuyruğuna yazar | Nihai içerik | Canlı yayınlanan kart/blog |
 
-> Not: Kaynak Tarayıcı ve Detay Çekici agent'larının veri kaynağı soyutlanmış olmalı (ör. bir `DisclosureSource` interface'i, hem `BorsapySource` hem `KAPApiSource` implementasyonu) — böylece Yol A'dan Yol B'ye geçiş, sadece bir konfigürasyon değişikliği olur, mimari yeniden yazılmaz.
+> Not: Kaynak Tarayıcı ve Detay & Ayrıştırma agent'larının veri kaynağı soyutlanmış olmalı (`DisclosureSource`). Yol A'da (`borsapy`) `Ticker.news` zaten çoğu zaman tam içerik döndürebildiği için Detay & Ayrıştırma adımı hafif/no-op kalabilir; Yol B'de (`KAPApiClient`) bu adım gerçek bir `disclosureDetail` çağrısı + Base64/HTML decode'dur. Yol A'dan Yol B'ye geçiş yalnızca bu agent'ın implementasyonunda değişir, Triage ve geri kalan zincir aynı kalır.
 
 ---
 
@@ -160,7 +200,7 @@ Sub-agent yoğun, zamanlanmış (scheduled) ve çok sayıda paralel işlem içer
 | `link` | Orijinal KAP sayfası linki (kaynak göstermek için) |
 | `htmlMessages` | İçinde `id` (subReportId) ve **Base64 kodlanmış tam HTML bildirim metni** (`tr`/`en`) — decode edilince tüm detaylar (tutarlar, tarihler, açıklamalar) çıkıyor |
 
-⚠️ **Teknik not:** `htmlMessages` içeriği Base64 + HTML formatında geliyor. Sub-agent akışında bir **"Decode & Parse" adımı** gerekecek: Base64 çöz → HTML'den düz metni çıkar (ör. BeautifulSoup/benzeri bir HTML parser ile) → LLM'e temiz metin olarak ver. Bu adım "Analiz/Özetleyici Agent"ın (bkz. §3) ilk işi olacak.
+⚠️ **Teknik not:** `htmlMessages` içeriği Base64 + HTML formatında geliyor. Sub-agent akışında bir **"Decode & Parse" adımı** gerekecek: Base64 çöz → HTML'den düz metni çıkar (ör. BeautifulSoup/benzeri bir HTML parser ile) → LLM'e temiz metin olarak ver. Bu adım "Detay & Ayrıştırma Agent"ın (bkz. §3.2 — sadece triage skoru 4+ olan bildirimler için çalışır) işi olacak.
 
 **disclosureDetail parametreleri:**
 
@@ -171,7 +211,7 @@ Sub-agent yoğun, zamanlanmış (scheduled) ve çok sayıda paralel işlem içer
 | `subReportList` | QUERY | `/disclosures`'tan gelen `subReportIds` değeri |
 | `apikey` (görsel) → gerçekte Basic Auth | HEADER | `Authorization: Basic base64(ClientID:Secret)` — Auth için gerekli |
 
-**Önemli mimari not:** Ücretsiz plan **dakikada 6 çağrı** ile sınırlı. Bu, sub-agent kuyruk tasarımını doğrudan etkiliyor — "Kaynak Tarayıcı Agent" bu limite uygun bir rate-limiter/backoff mekanizmasıyla çalışmalı, aksi halde 429/throttling hatası alınır. Min. 100 yazı/gün hedefiyle birlikte düşünüldüğünde, bu limit erken aşamada yeterli olsa da ölçeklenme sırasında ücretli plana geçiş ihtiyacı değerlendirilmeli.
+**Önemli mimari not:** Ücretsiz plan **dakikada 6 çağrı** ile sınırlı. Bu, sub-agent kuyruk tasarımını doğrudan etkiliyor — "Kaynak Tarayıcı Agent" bu limite uygun bir rate-limiter/backoff mekanizmasıyla çalışmalı, aksi halde 429/throttling hatası alınır. Güncel hacim hedefiyle (bkz. §6.4 — günlük ~150-250 ham bildirim, sadece skor 4+ olanlar detay çağrısı gerektirir) birlikte düşünüldüğünde, bu limit erken aşamada yeterli olsa da ölçeklenme sırasında ücretli plana geçiş ihtiyacı değerlendirilmeli.
 
 ### 6.1.1 members servisi — test edildi
 
@@ -236,7 +276,7 @@ MKK'nın **kapdestek@mkk.com.tr** üzerinden verdiği resmi cevap, production s�
 | **Production host adresi** | Sözleşme tamamlandıktan sonra ayrıca iletiliyor (şu an bilinmiyor, bilinemez de) |
 | **Auth akışı (generateToken)** | Doğrulandı: API Key → `generateToken` → dönen token `Authorization` header'ında kullanılıyor. **Test ortamında bu adıma gerek yok** (Claude Code'daki `_USE_TOKEN` bayrağı bu yüzden test'te false, production'da true olmalı) |
 | **IP whitelisting** | Production'da **statik IP bazlı yetkilendirme** var — sözleşme sonrası kullanılacak sunucu IP'lerinin MKK'ya bildirilmesi gerekiyor |
-| **Rate limit (production)** | **Dakikada 1.000 çağrı** — test ortamındaki (dk 6) limitten **166 kat daha yüksek**. Min. 100 yazı/gün hedefi için bu limit fazlasıyla yeterli, ücretli plan diye ayrı bir şey yok, limit sözleşmeyle birlikte geliyor |
+| **Rate limit (production)** | **Dakikada 1.000 çağrı** — test ortamındaki (dk 6) limitten **166 kat daha yüksek**. Güncel hacim hedefi (bkz. §6.4) için bu limit fazlasıyla yeterli, ücretli plan diye ayrı bir şey yok, limit sözleşmeyle birlikte geliyor |
 | **İçerik yeniden yayın lisansı** | KAP verisinin bir web sitesi/uygulama/haber platformunda **son kullanıcılara sunulması, yeniden dağıtılması ayrıca Veri Yayın Sözleşmesi kapsamında** değerlendiriliyor — yani sadece "veriye erişim" değil, "bu veriyi başkalarına gösterme" hakkı da bu sözleşmenin konusu |
 
 **Sonuç:** Rate limit için "ücretli plan var mı" sorusu artık anlamsız — sınır, ücretli bir plandan değil, doğrudan sözleşme ile birlikte geliyor (dk 1.000). Bu maddeyi kapatıyoruz.
@@ -277,15 +317,21 @@ Bu bulgu nedeniyle **Faz 4 (Abonelik) şimdilik yol haritasından çıkarıldı*
 
 **Durum:** Şimdilik borsapy ile devam ediyoruz (Yol A, kişisel/eğitim aşaması). Platform gerçek kullanıcı trafiği almaya başladığında bu konu, KAP production geçişiyle (§6.1.4) birlikte tek bir "ticarileşme" görüşmesinde ele alınabilir.
 
-### 6.4 Günlük yayın hacmi
-Sabit değil, **güne göre değişecek** — o gün kaç önemli KAP bildirimi/haber varsa ona göre üretim yapılacak. **Minimum hedef: günde ~100 yazı.**
-- Bu, sub-agent sisteminin yüksek paralellik ve verimli kuyruk yönetimi (Celery/Redis) gerektirdiğini doğruluyor
-- Ölçek notu: günde 100+ yazı, LLM API maliyeti açısından önceden bütçelenmeli (Claude API kullanım maliyeti Faz 1 planlamasında hesaba katılmalı)
+### 6.4 Günlük yayın hacmi ve LLM Maliyet Optimizasyonu
+Sabit değil, **güne göre değişecek** — o gün kaç önemli KAP bildirimi/haber varsa ona göre üretim yapılacak.
+- **Triage Öncesi Eski Plan:** Günde ~100 blog yazısı (her bildirim için derin blog, yüksek token maliyeti ve çöp içerik riski).
+- **Yeni Optimize Model:** 
+  - Günlük ~150-250 gelen ham bildirimden:
+    - **%60-70'i (Rutin):** Sıfır LLM çağrısıyla ham akışa kaydedilir.
+    - **%20-25'i (Orta / Skor 4-6):** Flash Haber / 2 Cümlelik Kart olarak tek bir hafif LLM ile özetlenir (~30-50 kart/gün).
+    - **%10-15'i (Kritik / Skor 7-10):** Derinlemesine kapsamlı blog yazısına dönüştürülür (~15-25 nitelikli blog/gün).
+- Bu yapı hem sistemin gürültüden arınmasını sağlar hem de Claude API faturalarını **%70 oranında düşürür** (kaba tahmin — her bildirim için derin blog üretmek yerine sadece skor 7-10 olanlar tam analiz görüyor).
 
-### 6.5 İçerik kalite kontrolü
+### 6.5 İçerik kalite kontrolü (Doğrulama & Halüsinasyon Koruması)
 **Tamamen otomatik** olacak — manuel editör onayı yok.
-- Bu karar, "Editör/Kalite Kontrol Agent" rolünün (bkz. §3) sistemdeki en kritik bileşenlerden biri haline geldiği anlamına geliyor; yanlış/yanıltıcı finansal bilgi riskine karşı bu agent'ın güçlü doğrulama kuralları (ör. sayısal verilerin kaynak bildirimle çapraz kontrolü, halüsinasyon tespiti) içermesi önemli
-- Yasal/itibar riski açısından not: otomatik yayınlanan finansal içerikte hata payını azaltmak için Editör Agent'a "kaynağa sadık kal, spekülasyon yapma" tarzı katı kısıtlar konulmalı
+- **Birleşik Prompt ile Yerleşik Doğrulama:** Yazar Agent yapılandırılmış JSON çıktısı üretirken kaynak metindeki sayıları (ör. 150.000.000 TL, %200 bedelsiz vb.) kaynakla eşleştirmek zorundadır.
+- Editör Agent, üretilen metindeki finansal büyüklükleri kaynak ham metinle çapraz karşılaştırır (regex & numeric check). Uyuşmazlık durumunda yayın otomatik olarak beklemeye alınır.
+- Yasal sorumluluk açısından üretilen tüm içeriklerin altına otomatik olarak *"Yatırım Tavsiyesi Değildir (YTD)"* ibaresi eklenir.
 
 ---
 
@@ -300,7 +346,7 @@ Sabit değil, **güne göre değişecek** — o gün kaç önemli KAP bildirimi/
 | Sub-agent mimarisi (roller, akış, Yol A/B soyutlaması) | ✅ Tanımlandı |
 | Teknik stack | ✅ Önerildi (LangGraph + FastAPI + Celery/Redis + PostgreSQL + Next.js + Claude API) — FastAPI iskeleti Claude Code ile kurulmaya başlandı |
 | Dil/lokalizasyon yaklaşımı | ✅ Karar verildi (IP bazlı yönlendirme + çeviri agent'ı) |
-| Günlük hacim hedefi | ✅ Belirlendi (min. ~100 yazı/gün, değişken) |
+| Günlük hacim hedefi | ✅ Belirlendi (bkz. §6.4 — triage bazlı: ~150-250 ham bildirimden ~15-25 nitelikli blog + ~30-50 flash haber/gün) |
 | Kalite kontrol yaklaşımı | ✅ Belirlendi (tamamen otomatik) |
 | API Key güvenliği (.env) | ✅ **TAMAMLANDI** — `.env`'de, Basic Auth (ClientID/Secret) olarak yapılandırıldı |
 | Rate limit davranışı (test, Yol B) | ✅ Doğrulandı (429 ERR-224, `KAPThrottled` exception ile yakalanıyor) |
